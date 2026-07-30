@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Island Area Navigator — Pre-Submission Checklist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blueprint: #123049;
+    --blueprint-deep: #0c2439;
+    --grid-line: rgba(140,190,220,0.16);
+    --grid-line-strong: rgba(140,190,220,0.30);
+    --paper: #f6f2e6;
+    --paper-line: #e3dcc8;
+    --ink: #1c2530;
+    --ink-soft: #55606b;
+    --cyan: #7fc4de;
+    --formulate: #e0a13c;
+    --solve: #4fa97d;
+    --evaluate: #c1592b;
+    --communicate: #8073b8;
+    --amber-soft: #f4e2bb;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--blueprint);
+    background-image:
+      repeating-linear-gradient(0deg, var(--grid-line) 0px, var(--grid-line) 1px, transparent 1px, transparent 32px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0px, var(--grid-line) 1px, transparent 1px, transparent 32px);
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--paper);
+    min-height:100vh;
+    padding:28px 20px 60px;
+  }
+  .wrap{max-width:960px; margin:0 auto;}
+  header{
+    display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
+    border-bottom:1px solid var(--grid-line-strong);
+    padding-bottom:18px; margin-bottom:22px; flex-wrap:wrap;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.14em;
+    color:var(--cyan); text-transform:uppercase; margin:0 0 6px;
+  }
+  h1{
+    font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:24px;
+    margin:0; letter-spacing:.01em; color:#fff;
+  }
+  .coords{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--cyan);
+    text-align:right; line-height:1.6; opacity:.85;
+  }
+
+  .progress-panel{
+    background:var(--paper); color:var(--ink); border-radius:3px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.28); padding:16px 20px; margin-bottom:22px;
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  }
+  .progress-panel .num{ font-family:'IBM Plex Mono', monospace; font-size:26px; font-weight:700; }
+  .progress-panel .label{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft); }
+  .progress-track{ flex:1; min-width:180px; height:8px; border-radius:4px; background:var(--paper-line); overflow:hidden; }
+  .progress-track > div{ height:100%; background:var(--cyan); transition:width .3s; }
+
+  .crit{
+    background:var(--paper); color:var(--ink); border-radius:3px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.28);
+    position:relative; overflow:hidden; margin-bottom:18px;
+  }
+  .crit::before{
+    content:''; position:absolute; top:0; left:0; bottom:0; width:6px;
+  }
+  .crit-head{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:18px 22px; cursor:pointer;
+  }
+  .crit-head .left{ display:flex; align-items:center; gap:14px; }
+  .crit-head .idx{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:700;
+    width:26px; height:26px; border-radius:2px; display:flex; align-items:center; justify-content:center;
+    color:#fff; flex-shrink:0;
+  }
+  .crit-head h2{ font-family:'IBM Plex Mono', monospace; font-size:16px; margin:0; letter-spacing:.01em; }
+  .crit-head .band{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .crit-head .chevron{ font-family:'IBM Plex Mono', monospace; font-size:14px; color:var(--ink-soft); transition:transform .2s; }
+  .crit.open .chevron{ transform:rotate(90deg); }
+  .crit-head .mini-count{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft);
+    border:1px solid var(--paper-line); border-radius:12px; padding:3px 10px; white-space:nowrap;
+  }
+
+  .crit-body{ display:none; padding:0 22px 22px; }
+  .crit.open .crit-body{ display:block; }
+
+  .block{ border-top:1px dashed var(--paper-line); padding-top:16px; margin-top:16px; }
+  .block:first-child{ border-top:none; margin-top:0; padding-top:0; }
+  .block h3{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-soft); margin:0 0 10px;
+  }
+
+  .descriptor-list{ margin:0; padding-left:18px; font-size:13.5px; line-height:1.65; }
+  .descriptor-list li{ margin-bottom:5px; }
+
+  .exemplar-list{ list-style:none; margin:0; padding:0; }
+  .exemplar-list li{
+    font-size:13.5px; line-height:1.6; padding:8px 0 8px 20px; position:relative; border-top:1px dashed var(--paper-line);
+  }
+  .exemplar-list li:first-child{ border-top:none; }
+  .exemplar-list li::before{
+    content:'—'; position:absolute; left:0; color:var(--ink-soft);
+  }
+
+  label.chk{
+    display:flex; gap:9px; align-items:flex-start; font-size:13.5px; line-height:1.55; padding:7px 0;
+    border-top:1px dashed var(--paper-line); cursor:pointer;
+  }
+  label.chk:first-of-type{ border-top:none; }
+  label.chk input{ margin-top:3px; flex-shrink:0; }
+  label.chk.checked span{ color:var(--ink-soft); text-decoration:line-through; }
+
+  .pitfall-list{ list-style:none; margin:0; padding:0; }
+  .pitfall-list li{
+    font-size:13px; line-height:1.55; padding:8px 10px; margin-bottom:7px; background:#fffdf7;
+    border:1px solid var(--paper-line); border-radius:2px;
+  }
+
+  textarea.notes{
+    width:100%; min-height:70px; font-family:'Source Serif 4', serif; font-size:13.5px; line-height:1.6;
+    color:var(--ink); border:1px solid var(--paper-line); background:#fffdf7; border-radius:2px; padding:10px 12px;
+    resize:vertical;
+  }
+  textarea.notes:focus{ outline:2px solid var(--cyan); outline-offset:1px; }
+
+  .legend{ display:flex; gap:14px; flex-wrap:wrap; margin:0 0 18px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--cyan); opacity:.8; }
+  .legend span{ display:inline-flex; align-items:center; gap:5px; }
+  .dot{ width:8px; height:8px; border-radius:1px; display:inline-block; }
+
+  .resetbtn{
+    font-family:'IBM Plex Mono', monospace; font-weight:600; font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+    background:transparent; color:var(--cyan); border:1px solid var(--grid-line-strong); padding:8px 14px;
+    border-radius:2px; cursor:pointer;
+  }
+  .resetbtn:hover{ border-color:var(--cyan); }
+
+  footer{ margin-top:26px; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--cyan); opacity:.6; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Island Area Navigator · Pre-Submission Check</p>
+      <h1>Fuerteventura PSMT — Section-by-Section Review</h1>
+    </div>
+    <div class="coords">
+      28.36°N&nbsp;14.03°W<br>
+      QCE MATH METHODS · UNIT 3<br>
+      SCALE 1 : ISMG
+    </div>
+  </header>
+
+  <p style="font-size:13px; color:var(--cyan); opacity:.85; margin:-8px 0 18px; max-width:640px;">
+    Open each section below to see the top-mark-band descriptors, what the QCAA high-level exemplar
+    does well for that criterion, and a checklist to work through against the draft before submitting.
+  </p>
+
+  <div class="progress-panel">
+    <div>
+      <div class="num" id="progressNum">0 / 0</div>
+      <div class="label">Checklist items addressed</div>
+    </div>
+    <div class="progress-track"><div id="progressBar" style="width:0%"></div></div>
+    <button class="resetbtn" id="resetBtn">Reset checklist</button>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--formulate)"></span> Formulate</span>
+    <span><span class="dot" style="background:var(--solve)"></span> Solve</span>
+    <span><span class="dot" style="background:var(--evaluate)"></span> Evaluate &amp; Verify</span>
+    <span><span class="dot" style="background:var(--communicate)"></span> Communicate</span>
+  </div>
+
+  <div id="critWrap"></div>
+
+  <footer>ISLAND AREA NAVIGATOR — TUTORING WORKSPACE — NOT AN OFFICIAL QCAA TOOL</footer>
+</div>
+
+<script>
+const DATA = {
+  Formulate: {
+    color: "var(--formulate)", bandLabel: "Top band: 3–4 marks",
+    descriptors: [
+      "Justified statements of important assumptions",
+      "Justified statements of important observations",
+      "Justified mathematical translation of important aspects of the task"
+    ],
+    exemplar: [
+      "Each assumption is stated, then immediately followed by a sentence on how it affects the model or result — not just listed and left unexplained.",
+      "Observations are tied to a specific, named source of information (e.g. the given scale, the image itself) and briefly summarised so the reader knows exactly what data is being used.",
+      "The concepts/techniques section names the actual candidate approaches considered and explains, in maths terms, why an irregular coastline rules out a simple area formula.",
+      "The technology to be used is foreshadowed early, so the reader knows what tools are coming before they appear in the Solve section."
+    ],
+    checklist: [
+      "Every assumption has its own justification sentence explaining why it matters to the model (not just what it is)",
+      "Every observation has its own justification sentence explaining why it's important to the task",
+      "The choice of approximation technique (e.g. trapezium vs rectangle) is explicitly justified against the shape of the coastline",
+      "The mathematical concepts/techniques needed (area, functions, technology) are named, not just implied",
+      "The technology to be used (GeoGebra, spreadsheet) is described and justified, not just mentioned in passing",
+      "The introduction states the context and aim in the student's own words, and could be understood without the task sheet"
+    ],
+    pitfalls: [
+      "An assumption or observation is stated but the 'why it matters' sentence is generic and could apply to any task — make it specific to this island and this technique.",
+      "Technology is named but never explained — say what it will be used for and why that's efficient/accurate."
+    ]
+  },
+  Solve: {
+    color: "var(--solve)", bandLabel: "Top band: 6–7 marks",
+    descriptors: [
+      "Accurate use of mathematical knowledge for important aspects of the task",
+      "Efficient use of technology",
+      "A complete solution"
+    ],
+    exemplar: [
+      "The general algebraic formula is written out in full before any numbers are substituted, so the reader can check the method independently of the numbers.",
+      "The technology-based working (e.g. spreadsheet sums) and the algebraic working are kept clearly separated but both shown, and they arrive at the same figure — this is what makes the solution verifiable.",
+      "Repeated or lengthy calculations are moved to an appendix and referenced from the body, keeping the main report concise while remaining fully checkable.",
+      "Units and rounding are applied consistently throughout every step, not just the final answer."
+    ],
+    checklist: [
+      "The general formula for the chosen technique is shown before any substitution",
+      "Every value substituted into the formula (widths, heights/lengths, x-values) is accurate and matches the technology working",
+      "The technology sum and the algebraic sum use exactly the same terms — no missing or mistyped values between the two",
+      "Working is shown step-by-step, not just the final line",
+      "Units (km² etc.) are included and consistent throughout",
+      "All numeric answers are rounded consistently (e.g. to 4 d.p.) as required by the task sheet",
+      "The solution reaches a clear final answer to the actual question asked"
+    ],
+    pitfalls: [
+      "A term goes missing or gets mistyped between the technology sum and the algebraic sum — cross-check every value line by line.",
+      "A substitution line has a typo (e.g. a stray symbol or sign) that doesn't match the formula above it.",
+      "The final answer is stated but the connection between the general formula and the substituted numbers isn't obvious — add a line showing the substitution clearly."
+    ]
+  },
+  Evaluate: {
+    color: "var(--evaluate)", bandLabel: "Top band: 4–5 marks",
+    descriptors: [
+      "Verified results",
+      "Justified statements about reasonableness by considering the assumptions",
+      "Justified statements about reasonableness by considering the observations",
+      "Justified statements of relevant strengths",
+      "Justified statements of relevant limitations"
+    ],
+    exemplar: [
+      "Verification uses an independent check on the working itself (e.g. a second method or a comparison of intermediate values), not only a comparison against one external published figure.",
+      "Reasonableness is evaluated by explicitly returning to each named assumption ('It follows from assumption 1 that…') and discussing what would change if it didn't hold — not simply restating the assumption.",
+      "Every strength and limitation is paired with a concrete consequence for the result (e.g. 'this means the model should be used with caution to predict…') rather than just being named.",
+      "The evaluation is tied back to the original question posed in the introduction, closing the loop on what the report set out to do."
+    ],
+    checklist: [
+      "The result is verified using an alternate technique or method, not only compared to one external 'true' figure",
+      "Each stated assumption is individually revisited and its effect on the result's reasonableness is discussed",
+      "Each stated observation is individually revisited and its effect on the result's reasonableness is discussed",
+      "At least two strengths are stated with a justification of why each matters to accuracy",
+      "At least two limitations are stated with a justification of their effect on the result (over- or under-estimate, and roughly by how much)",
+      "The percentage error (or equivalent check) is interpreted in words, not just left as a number"
+    ],
+    pitfalls: [
+      "Reasonableness is judged only against the published area figure — this checks accuracy, not reasonableness of the assumptions/observations. Add the assumption-by-assumption and observation-by-observation discussion.",
+      "Strengths/limitations are listed but not connected to a specific effect on the final number."
+    ]
+  },
+  Communicate: {
+    color: "var(--communicate)", bandLabel: "Top band: 3–4 marks",
+    descriptors: [
+      "Correct use of appropriate mathematical language",
+      "Logical organisation, readable independently of the task sheet",
+      "Justification of decisions using mathematical reasoning"
+    ],
+    exemplar: [
+      "The introduction states the aim and previews the method and headline finding in just two or three sentences, so the report stands alone.",
+      "Notation is used consistently throughout (the same function/variable names every time), with symbols defined the first time they appear.",
+      "Every figure and table is numbered, captioned, and referred to by name at the exact point it's relevant in the text (e.g. 'as seen in Figure 3').",
+      "The conclusion mirrors the introduction's structure: restates the aim, the finding, and what it means — rather than introducing new information."
+    ],
+    checklist: [
+      "The introduction can be understood by someone who has never seen the task sheet",
+      "Section headings are present and organise the report logically (Introduction, Formulate, Solve, Evaluate, Conclusion)",
+      "All figures/tables have captions and are referenced by name in the surrounding text",
+      "Mathematical notation (f(x), subscripts, units) is used correctly and consistently throughout",
+      "A genuine conclusion is written — not placeholder text — restating the finding and answering the original question",
+      "A reference list is included with all cited sources (e.g. the source for the published island area)",
+      "No placeholder text, draft notes, or 'TODO' markers remain anywhere in the report"
+    ],
+    pitfalls: [
+      "Table of contents, conclusion, or reference list left as placeholder text — a quick final read-through catches these.",
+      "A figure is mentioned in the Translation section before it's actually shown, or never referenced again once it appears."
+    ]
+  }
+};
+
+const ORDER = ["Formulate","Solve","Evaluate","Communicate"];
+const TITLES = { Formulate:"Formulate", Solve:"Solve", Evaluate:"Evaluate & Verify", Communicate:"Communicate" };
+
+let state = { checklist: {}, notes: {}, open: { Formulate: true } };
+
+function defaultChecklist(){
+  const c = {};
+  ORDER.forEach(k => { c[k] = DATA[k].checklist.map(()=>false); });
+  return c;
+}
+function defaultNotes(){
+  const n = {};
+  ORDER.forEach(k => { n[k] = ""; });
+  return n;
+}
+
+let saveTimer = null;
+function saveState(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try{ await window.storage.set('psmt-checklist-state', JSON.stringify(state), false); }
+    catch(e){ console.error('Save failed', e); }
+  }, 350);
+}
+
+async function loadState(){
+  try{
+    const res = await window.storage.get('psmt-checklist-state', false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state.checklist = parsed.checklist || defaultChecklist();
+      state.notes = parsed.notes || defaultNotes();
+      state.open = parsed.open || { Formulate: true };
+    } else {
+      state.checklist = defaultChecklist();
+      state.notes = defaultNotes();
+    }
+  }catch(e){
+    state.checklist = defaultChecklist();
+    state.notes = defaultNotes();
+  }
+  render();
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function updateProgress(){
+  let total = 0, done = 0;
+  ORDER.forEach(k => {
+    (state.checklist[k]||[]).forEach(v => { total++; if(v) done++; });
+  });
+  document.getElementById('progressNum').textContent = `${done} / ${total}`;
+  document.getElementById('progressBar').style.width = total ? `${(done/total*100).toFixed(0)}%` : '0%';
+}
+
+function render(){
+  const wrap = document.getElementById('critWrap');
+  wrap.innerHTML = ORDER.map((key, i) => {
+    const d = DATA[key];
+    const checked = state.checklist[key] || d.checklist.map(()=>false);
+    const nDone = checked.filter(Boolean).length;
+    const isOpen = !!state.open[key];
+    return `
+      <div class="crit ${isOpen ? 'open':''}" data-key="${key}" style="--accent:${d.color}">
+        <div class="crit-head" data-toggle="${key}">
+          <div class="left">
+            <div class="idx" style="background:${d.color}">${i+1}</div>
+            <div>
+              <h2>${TITLES[key]}</h2>
+              <div class="band">${d.bandLabel}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="mini-count">${nDone} / ${d.checklist.length}</div>
+            <div class="chevron">&#9656;</div>
+          </div>
+        </div>
+        <div class="crit-body">
+
+          <div class="block">
+            <h3>ISMG top-band descriptors</h3>
+            <ul class="descriptor-list">
+              ${d.descriptors.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="block">
+            <h3>What the high-level exemplar does here</h3>
+            <ul class="exemplar-list">
+              ${d.exemplar.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="block">
+            <h3>Before you submit — check the draft against this</h3>
+            ${d.checklist.map((c,idx)=>`
+              <label class="chk ${checked[idx] ? 'checked':''}">
+                <input type="checkbox" data-key="${key}" data-idx="${idx}" ${checked[idx] ? 'checked':''}/>
+                <span>${escapeHtml(c)}</span>
+              </label>
+            `).join('')}
+          </div>
+
+          <div class="block">
+            <h3>Common slip-ups to watch for</h3>
+            <ul class="pitfall-list">
+              ${d.pitfalls.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="block">
+            <h3>Notes for revision</h3>
+            <textarea class="notes" data-key="${key}" placeholder="Jot down what still needs fixing in this section…">${escapeHtml(state.notes[key]||'')}</textarea>
+          </div>
+
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  wrap.querySelectorAll('.crit-head').forEach(h => {
+    h.addEventListener('click', () => {
+      const key = h.dataset.toggle;
+      state.open[key] = !state.open[key];
+      saveState();
+      render();
+    });
+  });
+  wrap.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', (e) => {
+      const {key, idx} = e.target.dataset;
+      state.checklist[key][idx] = e.target.checked;
+      saveState();
+      render();
+    });
+  });
+  wrap.querySelectorAll('textarea.notes').forEach(t => {
+    t.addEventListener('input', (e) => {
+      state.notes[e.target.dataset.key] = e.target.value;
+      saveState();
+    });
+  });
+
+  updateProgress();
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if(!confirm('Reset all checklist ticks and notes?')) return;
+  state.checklist = defaultChecklist();
+  state.notes = defaultNotes();
+  saveState();
+  render();
+});
+
+loadState();
+</script>
+</body>
+</html>
